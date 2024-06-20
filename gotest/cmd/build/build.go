@@ -3,6 +3,7 @@ package build
 import (
 	gotestBuilder "gotest/pkg/builder"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +22,8 @@ func NewCmdBuild() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "build",
 		Short: "Build testcase",
-		Run: func(cmd *cobra.Command, args []string) {
-			o.RunBuild(cmd, args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return o.RunBuild(cmd, args)
 		},
 	}
 	cmd.Flags().StringVarP(&o.projPath, "root", "r", "", "Project root path")
@@ -33,7 +34,7 @@ func NewCmdBuild() *cobra.Command {
 func (o *BuildOptions) RunBuild(cmd *cobra.Command, args []string) error {
 	err := gotestBuilder.Build(o.projPath)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to build binary file in %s", o.projPath)
 	}
 	return nil
 }

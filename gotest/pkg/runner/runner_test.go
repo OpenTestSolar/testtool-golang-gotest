@@ -6,10 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	sdkApi "github.com/OpenTestSolar/testtool-sdk-golang/api"
-	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
-	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -55,10 +52,6 @@ func TestRunTest(t *testing.T) {
 	targetFinishedTests := 8
 	targetSucceedTests := 6
 	targetFailedTests := 2
-	NewReporterClientMock := gomonkey.ApplyFunc(sdkClient.NewReporterClient, func() (sdkApi.Reporter, error) {
-		return &MockReporterClient{}, nil
-	})
-	defer NewReporterClientMock.Reset()
 	absPath, err := filepath.Abs("../../testdata/")
 	assert.NoError(t, err)
 	err = builder.Build(absPath)
@@ -67,8 +60,8 @@ func TestRunTest(t *testing.T) {
 	// _, err = os.Stat(pkgBin)
 	// assert.NoError(t, err)
 	// defer os.Remove("../../testdata/demo.test")
-	binPath := filepath.Join(absPath, "demo.test")
-	err = RunTest(absPath, binPath, []*gotestTestcase.TestCase{
+	// binPath := filepath.Join(absPath, "demo.test")
+	err = RunTest(absPath, "demo", "demo_test.go", []*gotestTestcase.TestCase{
 		{
 			Path: "demo/demo_test.go",
 			Name: "TestAdd",
@@ -89,7 +82,7 @@ func TestRunTest(t *testing.T) {
 			Path: "demo/demo_test.go",
 			Name: "TestPanic",
 		},
-	})
+	}, &MockReporterClient{})
 	assert.NoError(t, err)
 	assert.Equal(t, reportRunningCount, targetRunningTests)
 	assert.Equal(t, reportFinishedCount, targetFinishedTests)

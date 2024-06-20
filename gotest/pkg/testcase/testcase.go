@@ -2,11 +2,11 @@ package testcase
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os"
 
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
+	"github.com/pkg/errors"
 )
 
 type TestCase struct {
@@ -59,12 +59,12 @@ func ParseTestCaseBySelector(selector string) (*TestCase, error) {
 func UnmarshalCaseInfo(path string) (*sdkModel.EntryParam, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read case info failed, err: %v", err)
+		return nil, errors.Wrapf(err, "read case info failed")
 	}
 	var config sdkModel.EntryParam
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal case info into model failed, err: %v", err)
+		return nil, errors.Wrapf(err, "unmarshal case info into model failed")
 	}
 	return &config, nil
 }

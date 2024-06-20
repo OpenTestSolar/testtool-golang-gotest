@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	sdkApi "github.com/OpenTestSolar/testtool-sdk-golang/api"
-	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"
@@ -43,10 +41,6 @@ func (m *MockReporterClient) Close() error {
 }
 
 func TestReportTestcases(t *testing.T) {
-	NewReporterClientMock := gomonkey.ApplyFunc(sdkClient.NewReporterClient, func() (sdkApi.Reporter, error) {
-		return &MockReporterClient{}, nil
-	})
-	defer NewReporterClientMock.Reset()
 	testcases := []*testcase.TestCase{
 		{
 			Path:       "",
@@ -54,7 +48,13 @@ func TestReportTestcases(t *testing.T) {
 			Attributes: map[string]string{},
 		},
 	}
-	err := reportTestcases(testcases)
+	loadErrors := []*sdkModel.LoadError{
+		{
+			Name:    "",
+			Message: "",
+		},
+	}
+	err := reportTestcases(testcases, loadErrors, &MockReporterClient{})
 	assert.NoError(t, err)
 }
 
@@ -85,6 +85,7 @@ func TestLoadTestcases(t *testing.T) {
 	}
 	projPath, err := filepath.Abs("../../testdata")
 	assert.NoError(t, err)
-	testcases := loadTestcases(projPath, testSelectors)
+	testcases, loadErrors := loadTestcases(projPath, testSelectors)
 	assert.Len(t, testcases, 1)
+	assert.Len(t, loadErrors, 0)
 }

@@ -1,15 +1,13 @@
 package execute
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
 	"gotest/pkg/testcase"
 
-	sdkApi "github.com/OpenTestSolar/testtool-sdk-golang/api"
-	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
-	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -138,10 +136,6 @@ func (m *MockReporterClient) Close() error {
 }
 
 func TestExecuteTestcases(t *testing.T) {
-	NewReporterClientMock := gomonkey.ApplyFunc(sdkClient.NewReporterClient, func() (sdkApi.Reporter, error) {
-		return &MockReporterClient{}, nil
-	})
-	defer NewReporterClientMock.Reset()
 	projPath, err := filepath.Abs("../../testdata")
 	assert.NoError(t, err)
 	packages := map[string]map[string][]*testcase.TestCase{
@@ -184,6 +178,46 @@ func TestExecuteTestcases(t *testing.T) {
 			},
 		},
 	}
-	err = executeTestcases(projPath, packages)
+	err = executeTestcases(projPath, packages, &MockReporterClient{})
 	assert.NoError(t, err)
+}
+
+func Test_discoverExecutableTestcases(t *testing.T) {
+	projPath, err := filepath.Abs("../../testdata")
+	assert.NoError(t, err)
+	os.Chdir(projPath)
+	// 验证可以基于指定目录路径找到路径下对应的所有包含测试用例的子目录
+	testcases := []*testcase.TestCase{
+		{
+			Path: "demo",
+			Name: "",
+		},
+	}
+	execTestcases, err := discoverExecutableTestcases(testcases)
+	assert.NoError(t, err)
+	assert.Len(t, execTestcases, 2)
+	// 验证如果传入的是文件路径则直接返回
+	testcases = []*testcase.TestCase{
+		{
+			Path: "demo/demo_test.go",
+			Name: "",
+		},
+		{
+			Path: "demo/build/build_test.go",
+			Name: "",
+		},
+	}
+	execTestcases, err = discoverExecutableTestcases(testcases)
+	assert.NoError(t, err)
+	assert.Len(t, execTestcases, 2)
+	// 验证如果传入的已经是子目录则不会返回额外用例
+	testcases = []*testcase.TestCase{
+		{
+			Path: "demo/build",
+			Name: "",
+		},
+	}
+	execTestcases, err = discoverExecutableTestcases(testcases)
+	assert.NoError(t, err)
+	assert.Len(t, execTestcases, 1)
 }
