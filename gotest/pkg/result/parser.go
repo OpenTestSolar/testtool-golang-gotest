@@ -10,7 +10,7 @@ import (
 	"time"
 
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
-	"github.com/sourcegraph/conc"
+	"github.com/pkg/errors"
 )
 
 type TestEvent struct {
@@ -67,7 +67,7 @@ func GenTestResult(name string, caseRunResult string, logs []string, startTime t
 	}
 	if caseRunLogs != nil {
 		caseSteps = []*sdkModel.TestCaseStep{
-			&sdkModel.TestCaseStep{
+			{
 				StartTime: startTime,
 				EndTime:   endTime,
 				Title:     "TestCase: ",
@@ -87,7 +87,7 @@ func GenTestResult(name string, caseRunResult string, logs []string, startTime t
 	}
 }
 
-func readLines(stdout io.ReadCloser, output chan string) error {
+func ReadLines(stdout io.ReadCloser, output chan string) error {
 	defer close(output)
 	reader := bufio.NewReader(stdout)
 	for {
@@ -96,8 +96,7 @@ func readLines(stdout io.ReadCloser, output chan string) error {
 			if err == io.EOF {
 				break
 			}
-			log.Printf("[PLUGIN]read line error: %v", err)
-			return err
+			return errors.Wrapf(err, "read line error")
 		}
 		// 如果isPrefix为true，表示行太长，没有完全读取
 		// 需要继续读取直到isPrefix为false，表示行的末尾
@@ -109,12 +108,13 @@ func readLines(stdout io.ReadCloser, output chan string) error {
 					output <- string(line)
 					return nil
 				}
-				return err
+				return errors.Wrapf(err, "read prefix line error")
 			}
 			line = append(line, more...)
 		}
 		output <- string(line)
 	}
+	log.Printf("[PLUGIN]run testcases finished")
 	return nil
 }
 
@@ -123,7 +123,8 @@ type CurrentRunningCaseInfo struct {
 	StartTime time.Time
 }
 
-func parseTestResult(output chan string, testResults chan *sdkModel.TestResult) error {
+func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult) error {
+	defer close(testResults)
 	info := make(map[string]*CurrentRunningCaseInfo)
 	for line := range output {
 		line = strings.TrimSpace(line)
@@ -134,7 +135,7 @@ func parseTestResult(output chan string, testResults chan *sdkModel.TestResult) 
 		var event TestEvent
 		err := json.Unmarshal([]byte(line), &event)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to parse line: %s", line)
 		}
 		if event.TestStart() {
 			info[event.Test] = &CurrentRunningCaseInfo{
@@ -161,23 +162,5 @@ func parseTestResult(output chan string, testResults chan *sdkModel.TestResult) 
 			info[event.Test].Log = append(info[event.Test].Log, event.Output)
 		}
 	}
-	return nil
-}
-
-func ParseCaseLog(stdout io.ReadCloser, testResults chan *sdkModel.TestResult) error {
-	defer close(testResults)
-	output := make(chan string)
-	var wg conc.WaitGroup
-	wg.Go(
-		func() {
-			readLines(stdout, output)
-		},
-	)
-	wg.Go(
-		func() {
-			parseTestResult(output, testResults)
-		},
-	)
-	wg.Wait()
 	return nil
 }

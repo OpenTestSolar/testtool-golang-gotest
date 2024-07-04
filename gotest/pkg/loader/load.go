@@ -1,7 +1,6 @@
 package loader
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,13 +25,13 @@ func ParseTestCaseInFile(projPath string, path string) ([]*gotestTestcase.TestCa
 	log.Printf("[PLUGIN]Parse testcase in file %s", path)
 	code, err := os.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "read testcase file failed")
+		return nil, errors.Wrapf(err, "read testcase file %s failed", path)
 	}
 	for _, line := range strings.Split(strings.TrimSuffix(string(code), "\n"), "\n") {
 		re := regexp.MustCompile(`^func\s+(Test\w+)\s*\(t \*testing\.T\)`)
 		match := re.FindStringSubmatch(line)
 		if len(match) > 0 {
-			fmt.Printf("find case %s", match[1])
+			log.Printf("find case %s", match[1])
 			testcaseList = append(testcaseList, &gotestTestcase.TestCase{
 				Path:       selectorPath,
 				Name:       match[1],
@@ -49,25 +48,28 @@ func LoadTestCase(projPath string, selectorPath string) ([]*gotestTestcase.TestC
 	selectorAbsPath := filepath.Join(projPath, selectorPath)
 	fi, err := os.Stat(selectorAbsPath)
 	if err != nil {
-		log.Printf("[PLUGIN]stat selector abs path: %s failed, err: %s", selectorAbsPath, err.Error())
-		return testcaseList, err
+		return nil, errors.Wrapf(err, "stat selector abs path: %s failed", selectorAbsPath)
 	}
 	log.Printf("[PLUGIN]Try to load testcases from path %s", selectorAbsPath)
 	if fi.IsDir() {
-		filepath.Walk(selectorAbsPath, func(path string, fi os.FileInfo, _ error) error {
+		err := filepath.Walk(selectorAbsPath, func(path string, fi os.FileInfo, e error) error {
+			if e != nil {
+				return errors.Wrapf(e, "failed to walk file path %s", path)
+			}
 			loadedTestCases, err := ParseTestCaseInFile(projPath, path)
 			if err != nil {
-				log.Printf("[PLUGIN]Static parse testcase within path %s failed, err: %v", path, err)
-				return nil
+				return errors.Wrapf(err, "parse testcase in path %s failed", path)
 			}
 			testcaseList = append(testcaseList, loadedTestCases...)
 			return nil
 		})
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		loadedTestCases, err := ParseTestCaseInFile(projPath, selectorAbsPath)
 		if err != nil {
-			log.Printf("[PLUGIN]Parse testcase file %s failed, err: %v", selectorAbsPath, err)
-			return testcaseList, err
+			return nil, errors.Wrapf(err, "parse testcase in file %s failed", selectorAbsPath)
 		}
 		testcaseList = append(testcaseList, loadedTestCases...)
 	}

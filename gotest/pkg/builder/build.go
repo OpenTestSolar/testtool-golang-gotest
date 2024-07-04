@@ -14,6 +14,7 @@ import (
 	gotestUtil "gotest/pkg/util"
 
 	"github.com/avast/retry-go"
+	"github.com/pkg/errors"
 	"github.com/sourcegraph/conc/pool"
 )
 
@@ -66,7 +67,7 @@ func Build(projPath string) error {
 	}
 	err = p.Wait()
 	if err != nil {
-		return fmt.Errorf("build package failed, err: %s", err.Error())
+		return errors.Wrapf(err, "build package failed")
 	}
 	return nil
 }

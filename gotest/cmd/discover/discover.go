@@ -1,7 +1,6 @@
 package discover
 
 import (
-	"fmt"
 	gotestLoader "gotest/pkg/loader"
 	gotestSelector "gotest/pkg/selector"
 	gotestTestcase "gotest/pkg/testcase"
@@ -9,8 +8,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -29,8 +30,8 @@ func NewCmdDiscover() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "discover",
 		Short: "Discover testcases",
-		Run: func(cmd *cobra.Command, args []string) {
-			o.RunDiscover(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return o.RunDiscover(cmd)
 		},
 	}
 	cmd.Flags().StringVarP(&o.discoverPath, "path", "p", "", "Path of testcase info")
@@ -56,12 +57,7 @@ func parseTestSelectors(testSelector []string) []*gotestSelector.TestSelector {
 	return targetSelectors
 }
 
-func reportTestcases(testcases []*gotestTestcase.TestCase) error {
-	reporter, err := sdkClient.NewReporterClient()
-	if err != nil {
-		log.Printf("[PLUGIN]Failed to create reporter: %v\n", err)
-		return err
-	}
+func reportTestcases(testcases []*gotestTestcase.TestCase, loadErrors []*sdkModel.LoadError, reporter api.Reporter) error {
 	var tests []*sdkModel.TestCase
 	for _, testcase := range testcases {
 		tests = append(tests, &sdkModel.TestCase{
@@ -69,24 +65,19 @@ func reportTestcases(testcases []*gotestTestcase.TestCase) error {
 			Attributes: testcase.Attributes,
 		})
 	}
-	err = reporter.ReportLoadResult(&sdkModel.LoadResult{
+	err := reporter.ReportLoadResult(&sdkModel.LoadResult{
 		Tests:      tests,
-		LoadErrors: nil,
+		LoadErrors: loadErrors,
 	})
 	if err != nil {
-		log.Printf("[PLUGIN]Failed to report load result: %v\n", err)
-		return err
-	}
-	err = reporter.Close()
-	if err != nil {
-		log.Printf("[PLUGIN]Failed to close report: %v\n", err)
-		return err
+		return errors.Wrap(err, "failed to report load result")
 	}
 	return nil
 }
 
-func loadTestcases(projPath string, targetSelectors []*gotestSelector.TestSelector) []*gotestTestcase.TestCase {
+func loadTestcases(projPath string, targetSelectors []*gotestSelector.TestSelector) ([]*gotestTestcase.TestCase, []*sdkModel.LoadError) {
 	var testcases []*gotestTestcase.TestCase
+	var loadErrors []*sdkModel.LoadError
 	loadedSelectorPath := make(map[string]struct{})
 	for _, testSelector := range targetSelectors {
 		// skip the path that has been loaded
@@ -94,34 +85,39 @@ func loadTestcases(projPath string, targetSelectors []*gotestSelector.TestSelect
 			continue
 		}
 		loadedSelectorPath[testSelector.Path] = struct{}{}
-
 		loadedTestcases, err := gotestLoader.LoadTestCase(projPath, testSelector.Path)
 		if err != nil {
-			log.Printf("[PLUGIN]Load testcase from path %s failed, err: %v", testSelector.Path, err)
+			loadErrors = append(loadErrors, &sdkModel.LoadError{
+				Name:    testSelector.Path,
+				Message: err.Error(),
+			})
 			continue
 		}
 		testcases = append(testcases, loadedTestcases...)
 	}
-	return testcases
+	return testcases, loadErrors
 }
 
 func (o *DiscoverOptions) RunDiscover(cmd *cobra.Command) error {
-	// load case info from yaml file
 	config, err := gotestTestcase.UnmarshalCaseInfo(o.discoverPath)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to unmarshal case info")
 	}
-	// parse selectors
 	targetSelectors := parseTestSelectors(config.TestSelectors)
 	log.Printf("[PLUGIN]load testcases from selectors: %s", targetSelectors)
-	// get workspace
 	projPath := gotestUtil.GetWorkspace(config.ProjectPath)
 	_, err = os.Stat(projPath)
 	if err != nil {
-		return fmt.Errorf("stat project path %s failed, err: %s", projPath, err.Error())
+		return errors.Wrapf(err, "stat project path %s failed", projPath)
 	}
-	// load testcases
-	testcases := loadTestcases(projPath, targetSelectors)
-	// report testcases
-	return reportTestcases(testcases)
+	testcases, loadErrors := loadTestcases(projPath, targetSelectors)
+	reporter, err := sdkClient.NewReporterClient(config.FileReportPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create reporter")
+	}
+	err = reportTestcases(testcases, loadErrors, reporter)
+	if err != nil {
+		return errors.Wrapf(err, "failed to report testcases")
+	}
+	return nil
 }
