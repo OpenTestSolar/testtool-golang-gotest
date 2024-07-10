@@ -17,7 +17,9 @@ supportOS:
 supportArch:
   - amd64
   - arm64
+repository: https://github.com/OpenTestSolar/testtool-golang-gotest
 gitPkgUrl: github.com/OpenTestSolar/testtool-golang-gotest@master:gotest
+httpPkgUrl: https://opentestsolar.github.io/testtool-registry/testtools/golang/gotest/metadata.json@stable
 entry:
   load: "solar-gotest discover -p $1"
   run: "solar-gotest execute -p $1"
