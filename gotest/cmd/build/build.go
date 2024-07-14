@@ -1,7 +1,7 @@
 package build
 
 import (
-	gotestBuilder "gotest/pkg/builder"
+	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

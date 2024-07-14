@@ -1,11 +1,12 @@
 package discover
 
 import (
-	"gotest/pkg/loader"
-	"gotest/pkg/selector"
-	"gotest/pkg/testcase"
 	"path/filepath"
 	"testing"
+
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/loader"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/selector"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
 
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/agiledragon/gomonkey/v2"

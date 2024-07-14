@@ -2,14 +2,15 @@ package execute
 
 import (
 	"errors"
-	gotestRunner "gotest/pkg/runner"
-	gotestTestcase "gotest/pkg/testcase"
-	gotestUtil "gotest/pkg/util"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	gotestRunner "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/runner"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"

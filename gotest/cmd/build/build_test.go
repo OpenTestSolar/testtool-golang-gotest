@@ -1,8 +1,9 @@
 package build
 
 import (
-	"gotest/pkg/builder"
 	"testing"
+
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"

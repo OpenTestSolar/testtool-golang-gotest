@@ -1,10 +1,11 @@
 package runner
 
 import (
-	"gotest/pkg/builder"
-	gotestTestcase "gotest/pkg/testcase"
 	"path/filepath"
 	"testing"
+
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
 
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/stretchr/testify/assert"

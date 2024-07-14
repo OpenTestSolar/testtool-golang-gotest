@@ -1,12 +1,13 @@
 package discover
 
 import (
-	gotestLoader "gotest/pkg/loader"
-	gotestSelector "gotest/pkg/selector"
-	gotestTestcase "gotest/pkg/testcase"
-	gotestUtil "gotest/pkg/util"
 	"log"
 	"os"
+
+	gotestLoader "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/loader"
+	gotestSelector "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/selector"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	gotestUtil "gotest/pkg/util"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
 
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"

@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	gotestBuilder "gotest/pkg/builder"
-	gotestResult "gotest/pkg/result"
-	gotestTestcase "gotest/pkg/testcase"
-	gotestUtil "gotest/pkg/util"
+	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
+	gotestResult "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/result"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
