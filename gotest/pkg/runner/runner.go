@@ -35,16 +35,18 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 		_, err := os.Stat(pkgBin)
 		if err != nil {
 			log.Printf("[PLUGIN]Can't find package bin file %s during running, try to build it...", pkgBin)
-			_, err := gotestBuilder.BuildTestPackage(projPath, path, false)
-			if err != nil {
-				return errors.Wrapf(err, "Build package %s during running failed", path)
-			}
+			_, err = gotestBuilder.BuildTestPackage(projPath, path, false)
 		}
-		_, minor, err := gotestUtil.ParseGoVersion()
-		if err != nil || minor <= 19 {
-			cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+		if err != nil {
+			log.Printf("[PLUGIN]Build bin file %s during execution failed, err: %v, execute test from source", pkgBin, err)
+			cmdline = fmt.Sprintf(`go test -v -json -run "%s$" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
 		} else {
-			cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+			_, minor, err := gotestUtil.ParseGoVersion()
+			if err != nil || minor <= 19 {
+				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+			} else {
+				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+			}
 		}
 	}
 	extra_args := os.Getenv("TESTSOLAR_TTP_EXTRAARGS")
