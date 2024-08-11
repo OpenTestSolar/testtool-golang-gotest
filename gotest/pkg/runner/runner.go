@@ -38,8 +38,7 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 			_, err = gotestBuilder.BuildTestPackage(projPath, path, false)
 		}
 		if err != nil {
-			log.Printf("[PLUGIN]Build bin file %s during execution failed, err: %v, execute test from source", pkgBin, err)
-			cmdline = fmt.Sprintf(`go test -v -json -run "%s$" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
+			return errors.Wrapf(err, "build package %s failed", path)
 		} else {
 			_, minor, err := gotestUtil.ParseGoVersion()
 			if err != nil || minor <= 19 {
