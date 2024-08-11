@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/OpenTestSolar/testtool-golang-gotest/pkg/loader"
-	"github.com/OpenTestSolar/testtool-golang-gotest/pkg/selector"
-	"github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/loader"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/selector"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
 
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/agiledragon/gomonkey/v2"
