@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
-	gotestResult "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/result"
-	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
-	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
+	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/pkg/builder"
+	gotestResult "github.com/OpenTestSolar/testtool-golang-gotest/pkg/result"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
