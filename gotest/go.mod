@@ -1,4 +1,4 @@
-module github.com/OpenTestSolar/testtool-golang-gotest
+module github.com/OpenTestSolar/testtool-golang-gotest/gotest
 
 go 1.19
 

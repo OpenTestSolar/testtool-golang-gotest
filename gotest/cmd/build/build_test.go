@@ -3,7 +3,7 @@ package build
 import (
 	"testing"
 
-	"github.com/OpenTestSolar/testtool-golang-gotest/pkg/builder"
+	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"

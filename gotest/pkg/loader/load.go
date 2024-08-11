@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
 
 	"github.com/pkg/errors"
 )
