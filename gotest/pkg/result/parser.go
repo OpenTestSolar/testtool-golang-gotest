@@ -123,7 +123,7 @@ type CurrentRunningCaseInfo struct {
 	StartTime time.Time
 }
 
-func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult) error {
+func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult, filePath string) error {
 	defer close(testResults)
 	info := make(map[string]*CurrentRunningCaseInfo)
 	for line := range output {
@@ -143,12 +143,12 @@ func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult) 
 				StartTime: event.Time,
 			}
 			// 上报当前运行用例
-			caseResult := GenTestResult(fmt.Sprintf("%s?%s", event.Package, event.Test), event.Action, nil, event.Time, event.Time)
+			caseResult := GenTestResult(fmt.Sprintf("%s?%s", filePath, event.Test), event.Action, nil, event.Time, event.Time)
 			log.Printf("[PLUGIN]report running case %s", event.Test)
 			testResults <- caseResult
 		} else if event.TestFinished() {
 			var caseResult *sdkModel.TestResult
-			name := fmt.Sprintf("%s?%s", event.Package, event.Test)
+			name := fmt.Sprintf("%s?%s", filePath, event.Test)
 			if _, ok := info[event.Test]; ok {
 				caseResult = GenTestResult(name, event.Action, info[event.Test].Log, info[event.Test].StartTime, event.Time)
 			} else {

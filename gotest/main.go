@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/cmd/build"
-	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/cmd/discover"
-	"github.com/OpenTestSolar/testtool-golang-gotest/gotest/cmd/execute"
+	"github.com/OpenTestSolar/testtool-golang-gotest/cmd/build"
+	"github.com/OpenTestSolar/testtool-golang-gotest/cmd/discover"
+	"github.com/OpenTestSolar/testtool-golang-gotest/cmd/execute"
 
 	"github.com/spf13/cobra"
 )
