@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	gotestRunner "github.com/OpenTestSolar/testtool-golang-gotest/pkg/runner"
-	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
-	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/pkg/util"
+	gotestRunner "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/runner"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
