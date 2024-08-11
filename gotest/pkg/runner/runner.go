@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/builder"
@@ -20,26 +21,31 @@ import (
 )
 
 func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCase, reporter api.Reporter) error {
-	pkgBin := filepath.Join(projPath, path+".test")
-	_, err := os.Stat(pkgBin)
-	if err != nil {
-		log.Printf("[PLUGIN]Can't find package bin file %s during running, try to build it...", pkgBin)
-		_, err := gotestBuilder.BuildTestPackage(projPath, path, false)
-		if err != nil {
-			return errors.Wrapf(err, "Build package %s during running failed", path)
-		}
-	}
+	var cmdline string
 	var tcNames []string
 	for _, testcase := range testcases {
 		tcNames = append(tcNames, testcase.Name)
 	}
 	caseFullRelPath := filepath.Join(path, fileName)
-	var cmdline string
-	_, minor, err := gotestUtil.ParseGoVersion()
-	if err != nil || minor <= 19 {
-		cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+	if source, err := strconv.ParseBool(os.Getenv("TESTSOLAR_TTP_EXECUTEFROMSOURCE")); err == nil && source {
+		log.Printf("[PLUGIN]Execute test from source")
+		cmdline = fmt.Sprintf(`go test -v -json -run "%s$" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
 	} else {
-		cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+		pkgBin := filepath.Join(projPath, path+".test")
+		_, err := os.Stat(pkgBin)
+		if err != nil {
+			log.Printf("[PLUGIN]Can't find package bin file %s during running, try to build it...", pkgBin)
+			_, err := gotestBuilder.BuildTestPackage(projPath, path, false)
+			if err != nil {
+				return errors.Wrapf(err, "Build package %s during running failed", path)
+			}
+		}
+		_, minor, err := gotestUtil.ParseGoVersion()
+		if err != nil || minor <= 19 {
+			cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+		} else {
+			cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+		}
 	}
 	extra_args := os.Getenv("TESTSOLAR_TTP_EXTRAARGS")
 	if extra_args != "" {
@@ -67,7 +73,7 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 	)
 	p.Go(
 		func(ctx context.Context) error {
-			return gotestResult.ParseTestResult(output, testResults)
+			return gotestResult.ParseTestResult(output, testResults, caseFullRelPath)
 		},
 	)
 	p.Go(

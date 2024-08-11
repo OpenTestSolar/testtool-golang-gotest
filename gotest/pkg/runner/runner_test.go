@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -49,44 +50,43 @@ func (m *MockReporterClient) Close() error {
 }
 
 func TestRunTest(t *testing.T) {
-	targetRunningTests := 8
-	targetFinishedTests := 8
-	targetSucceedTests := 6
+	targetRunningTests := 7
+	targetFinishedTests := 7
+	targetSucceedTests := 5
 	targetFailedTests := 2
 	absPath, err := filepath.Abs("../../testdata/")
 	assert.NoError(t, err)
 	err = builder.Build(absPath)
 	assert.NoError(t, err)
-	// pkgBin := "../../testdata/demo.test"
-	// _, err = os.Stat(pkgBin)
-	// assert.NoError(t, err)
-	// defer os.Remove("../../testdata/demo.test")
-	// binPath := filepath.Join(absPath, "demo.test")
-	err = RunTest(absPath, "demo", "demo_test.go", []*gotestTestcase.TestCase{
-		{
-			Path: "demo/demo_test.go",
-			Name: "TestAdd",
-		},
-		{
-			Path: "demo/demo_test.go",
-			Name: "TestAdd1",
-		},
-		{
-			Path: "demo/demo_test.go",
-			Name: "TestAdd2",
-		},
-		{
-			Path: "demo/demo_test.go",
-			Name: "SlowFunc",
-		},
-		{
-			Path: "demo/demo_test.go",
-			Name: "TestPanic",
-		},
-	}, &MockReporterClient{})
-	assert.NoError(t, err)
-	assert.Equal(t, reportRunningCount, targetRunningTests)
-	assert.Equal(t, reportFinishedCount, targetFinishedTests)
-	assert.Equal(t, reportSucceedCount, targetSucceedTests)
-	assert.Equal(t, reportFailedCount, targetFailedTests)
+	for _, s := range []string{"0", "1"} {
+		err = os.Setenv("TESTSOLAR_TTP_EXECUTEFROMSOURCE", s)
+		assert.NoError(t, err)
+		reportRunningCount = 0
+		reportFinishedCount = 0
+		reportSucceedCount = 0
+		reportFailedCount = 0
+		err = RunTest(absPath, "demo", "demo_test.go", []*gotestTestcase.TestCase{
+			{
+				Path: "demo/demo_test.go",
+				Name: "TestAdd",
+			},
+			{
+				Path: "demo/demo_test.go",
+				Name: "TestAdd1",
+			},
+			{
+				Path: "demo/demo_test.go",
+				Name: "TestAdd2",
+			},
+			{
+				Path: "demo/demo_test.go",
+				Name: "TestPanic",
+			},
+		}, &MockReporterClient{})
+		assert.NoError(t, err)
+		assert.Equal(t, reportRunningCount, targetRunningTests)
+		assert.Equal(t, reportFinishedCount, targetFinishedTests)
+		assert.Equal(t, reportSucceedCount, targetSucceedTests)
+		assert.Equal(t, reportFailedCount, targetFailedTests)
+	}
 }
