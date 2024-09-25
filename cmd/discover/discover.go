@@ -4,10 +4,10 @@ import (
 	"log"
 	"os"
 
-	gotestLoader "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/loader"
-	gotestSelector "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/selector"
-	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/testcase"
-	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/gotest/pkg/util"
+	gotestLoader "github.com/OpenTestSolar/testtool-golang-gotest/pkg/loader"
+	gotestSelector "github.com/OpenTestSolar/testtool-golang-gotest/pkg/selector"
+	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
+	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
