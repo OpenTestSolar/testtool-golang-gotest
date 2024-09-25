@@ -3,7 +3,7 @@ name: gotest
 nameZh: Gotest自动化测试工具
 lang: golang
 langType: COMPILED
-version: '0.2.5'
+version: '0.2.6'
 description: Gotest自动化测试工具
 defaultBaseImage: golang:1.22
 scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-gotest
@@ -21,8 +21,8 @@ repository: https://github.com/OpenTestSolar/testtool-golang-gotest
 gitPkgUrl: github.com/OpenTestSolar/testtool-golang-gotest@master:gotest
 httpPkgUrl: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/golang/gotest/metadata.json@stable
 entry:
-  load: "solar-gotest discover -p $1"
-  run: "solar-gotest execute -p $1"
+  load: "solar-ifbook discover -p $1"
+  run: "solar-ifbook execute -p $1"
 parameterDefs:
   - name: executeFromSource
     value: 是否从源码执行测试

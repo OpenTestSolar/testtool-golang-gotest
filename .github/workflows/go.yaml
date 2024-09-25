@@ -28,12 +28,10 @@ jobs:
         sudo apt-get install -y upx 
     - name: Get dependencies
       run: |
-        cd gotest
         go mod download
 
     - name: Run tests and check coverage
       run: |
-        cd gotest
         ./coverage.sh
   meta-check:
     runs-on: ubuntu-latest
@@ -46,4 +44,4 @@ jobs:
       - name: Validate metadata
         run: |
           pip install -U solar-registry
-          solar-registry validate gotest
+          solar-registry validate .
