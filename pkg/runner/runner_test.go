@@ -72,6 +72,14 @@ func TestRunTest(t *testing.T) {
 			},
 			{
 				Path: "demo/demo_test.go",
+				Name: "TestAdd",
+			},
+			{
+				Path: "demo/demo_test.go",
+				Name: "TestAdd/neg",
+			},
+			{
+				Path: "demo/demo_test.go",
 				Name: "TestAdd1",
 			},
 			{
