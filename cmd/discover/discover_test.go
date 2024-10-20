@@ -90,3 +90,25 @@ func TestLoadTestcases(t *testing.T) {
 	assert.Len(t, testcases, 1)
 	assert.Len(t, loadErrors, 0)
 }
+
+func TestLoadSubTestcases(t *testing.T) {
+	testSelectors := []*selector.TestSelector{
+		{
+			Value:      "",
+			Path:       "demo/demo_test.go",
+			Name:       "TestAdd/pos",
+			Attributes: map[string]string{},
+		},
+		{
+			Value:      "",
+			Path:       "demo/demo_test.go",
+			Name:       "TestAdd/neg",
+			Attributes: map[string]string{},
+		},
+	}
+	projPath, err := filepath.Abs("../../testdata")
+	assert.NoError(t, err)
+	testcases, loadErrors := loadTestcases(projPath, testSelectors)
+	assert.Len(t, testcases, 5)
+	assert.Len(t, loadErrors, 0)
+}
