@@ -23,13 +23,25 @@ import (
 func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCase, reporter api.Reporter) error {
 	var cmdline string
 	var tcNames []string
+	nameFilter := make(map[string]bool)
 	for _, testcase := range testcases {
-		tcNames = append(tcNames, testcase.Name)
+		var name string
+		if strings.Contains(testcase.Name, "/") {
+			name = strings.SplitN(testcase.Name, "/", 2)[0]
+		} else {
+			name = testcase.Name
+		}
+		if _, ok := nameFilter[name]; ok {
+			continue
+		} else {
+			nameFilter[name] = true
+		}
+		tcNames = append(tcNames, fmt.Sprintf("^%s$", name))
 	}
 	caseFullRelPath := filepath.Join(path, fileName)
 	if source, err := strconv.ParseBool(os.Getenv("TESTSOLAR_TTP_EXECUTEFROMSOURCE")); err == nil && source {
 		log.Printf("[PLUGIN]Execute test from source")
-		cmdline = fmt.Sprintf(`go test -v -json -run "%s$" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
+		cmdline = fmt.Sprintf(`go test -v -json -run "%s" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
 	} else {
 		pkgBin := filepath.Join(projPath, path+".test")
 		_, err := os.Stat(pkgBin)
@@ -42,9 +54,9 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 		} else {
 			_, minor, err := gotestUtil.ParseGoVersion()
 			if err != nil || minor <= 19 {
-				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v -test.run "%s"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
 			} else {
-				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s$"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
+				cmdline = fmt.Sprintf(`go tool test2json -t -p %s %s -test.v=test2json -test.run "%s"`, caseFullRelPath, pkgBin, strings.Join(tcNames, "|"))
 			}
 		}
 	}
