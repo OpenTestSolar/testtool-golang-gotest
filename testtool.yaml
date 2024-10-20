@@ -3,7 +3,7 @@ name: gotest
 nameZh: Gotest自动化测试工具
 lang: golang
 langType: COMPILED
-version: '0.2.6'
+version: '0.2.7'
 description: Gotest自动化测试工具
 defaultBaseImage: golang:1.22
 scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-gotest

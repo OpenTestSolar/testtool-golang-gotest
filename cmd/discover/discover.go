@@ -1,8 +1,10 @@
 package discover
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	gotestLoader "github.com/OpenTestSolar/testtool-golang-gotest/pkg/loader"
 	gotestSelector "github.com/OpenTestSolar/testtool-golang-gotest/pkg/selector"
@@ -76,8 +78,28 @@ func reportTestcases(testcases []*gotestTestcase.TestCase, loadErrors []*sdkMode
 	return nil
 }
 
+func expandTestcaseBySelector(testcase *gotestTestcase.TestCase, testSelectors []*gotestSelector.TestSelector) []*gotestTestcase.TestCase {
+	// 根据testselector来扩展加载用例
+	// 例如加载的用例为/path/to/target?TestAdd
+	// 而testselector中用例包含/path/to/target?TestAdd/1以及/path/to/target?TestAdd/2
+	// 则返回/path/to/target?TestAdd/1以及/path/to/target?TestAdd/2
+	var expandTestcases []*gotestTestcase.TestCase
+	for _, selector := range testSelectors {
+		if testcase.Path == selector.Path && strings.HasPrefix(selector.Name, fmt.Sprintf("%s/", testcase.Name)) {
+			subTestcase := &gotestTestcase.TestCase{
+				Path:       testcase.Path,
+				Name:       selector.Name,
+				Attributes: testcase.Attributes,
+			}
+			expandTestcases = append(expandTestcases, subTestcase)
+		}
+	}
+	return expandTestcases
+}
+
 func loadTestcases(projPath string, targetSelectors []*gotestSelector.TestSelector) ([]*gotestTestcase.TestCase, []*sdkModel.LoadError) {
 	var testcases []*gotestTestcase.TestCase
+	var expandTestcases []*gotestTestcase.TestCase
 	var loadErrors []*sdkModel.LoadError
 	loadedSelectorPath := make(map[string]struct{})
 	for _, testSelector := range targetSelectors {
@@ -96,7 +118,18 @@ func loadTestcases(projPath string, targetSelectors []*gotestSelector.TestSelect
 		}
 		testcases = append(testcases, loadedTestcases...)
 	}
-	return testcases, loadErrors
+	// 考虑到单独下发一个子用例的场景，加载阶段由于都是静态解析用例，因此无法解析到具体的子用例
+	// 例如下发的selector格式为/path/to/target?TestAdd/1
+	// 则通过LoadTestCase加载到的用例为/path/to/target?TestAdd
+	// 这种情况下需要将加载的用例由/path/to/target?TestAdd替换为/path/to/target?TestAdd/1返回
+	for _, testcase := range testcases {
+		if expand := expandTestcaseBySelector(testcase, targetSelectors); expand != nil {
+			expandTestcases = append(expandTestcases, expand...)
+		} else {
+			expandTestcases = append(expandTestcases, testcase)
+		}
+	}
+	return expandTestcases, loadErrors
 }
 
 func (o *DiscoverOptions) RunDiscover(cmd *cobra.Command) error {
