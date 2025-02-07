@@ -123,6 +123,13 @@ type CurrentRunningCaseInfo struct {
 	StartTime time.Time
 }
 
+func getTestPath(filePath, testPackage string) string {
+	if filePath == "" {
+		return testPackage
+	}
+	return filePath
+}
+
 func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult, filePath string) error {
 	defer close(testResults)
 	info := make(map[string]*CurrentRunningCaseInfo)
@@ -143,12 +150,12 @@ func ParseTestResult(output chan string, testResults chan *sdkModel.TestResult, 
 				StartTime: event.Time,
 			}
 			// 上报当前运行用例
-			caseResult := GenTestResult(fmt.Sprintf("%s?%s", filePath, event.Test), event.Action, nil, event.Time, event.Time)
+			caseResult := GenTestResult(fmt.Sprintf("%s?%s", getTestPath(filePath, event.Package), event.Test), event.Action, nil, event.Time, event.Time)
 			log.Printf("[PLUGIN]report running case %s", event.Test)
 			testResults <- caseResult
 		} else if event.TestFinished() {
 			var caseResult *sdkModel.TestResult
-			name := fmt.Sprintf("%s?%s", filePath, event.Test)
+			name := fmt.Sprintf("%s?%s", getTestPath(filePath, event.Package), event.Test)
 			if _, ok := info[event.Test]; ok {
 				caseResult = GenTestResult(name, event.Action, info[event.Test].Log, info[event.Test].StartTime, event.Time)
 			} else {

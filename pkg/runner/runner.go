@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -11,13 +10,12 @@ import (
 
 	gotestBuilder "github.com/OpenTestSolar/testtool-golang-gotest/pkg/builder"
 	gotestResult "github.com/OpenTestSolar/testtool-golang-gotest/pkg/result"
+
 	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
 	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/pkg/util"
 
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
-	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/conc/pool"
 )
 
 func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCase, reporter api.Reporter) error {
@@ -70,29 +68,5 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 	if err != nil {
 		return errors.Wrapf(err, "run cmd %s failed", cmdline)
 	}
-	testResults := make(chan *sdkModel.TestResult)
-	output := make(chan string)
-	// 并发启动协程，如果协程中有返回错误则报错
-	// 1. 读取子进程标准输出流
-	// 2. 解析子进程标准输出流
-	// 3. 上报用例执行结果
-	p := pool.New().
-		WithContext(context.Background()).
-		WithCancelOnError()
-	p.Go(
-		func(ctx context.Context) error {
-			return gotestResult.ReadLines(stdout, output)
-		},
-	)
-	p.Go(
-		func(ctx context.Context) error {
-			return gotestResult.ParseTestResult(output, testResults, caseFullRelPath)
-		},
-	)
-	p.Go(
-		func(ctx context.Context) error {
-			return gotestResult.ReportTestResults(testResults, reporter)
-		},
-	)
-	return p.Wait()
+	return gotestResult.ParseAndReportResult(stdout, caseFullRelPath, reporter)
 }

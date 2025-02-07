@@ -137,15 +137,15 @@ func (o *DiscoverOptions) RunDiscover(cmd *cobra.Command) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmarshal case info")
 	}
-	targetSelectors := parseTestSelectors(config.TestSelectors)
+	targetSelectors := parseTestSelectors(config.GetTestSelectors())
 	log.Printf("[PLUGIN]load testcases from selectors: %s", targetSelectors)
-	projPath := gotestUtil.GetWorkspace(config.ProjectPath)
+	projPath := gotestUtil.GetWorkspace(config.GetProjectPath())
 	_, err = os.Stat(projPath)
 	if err != nil {
 		return errors.Wrapf(err, "stat project path %s failed", projPath)
 	}
 	testcases, loadErrors := loadTestcases(projPath, targetSelectors)
-	reporter, err := sdkClient.NewReporterClient(config.FileReportPath)
+	reporter, err := sdkClient.NewReporterClient(config.GetFileReportPath())
 	if err != nil {
 		return errors.Wrapf(err, "failed to create reporter")
 	}

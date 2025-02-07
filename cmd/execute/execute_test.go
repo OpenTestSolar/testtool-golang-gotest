@@ -1,6 +1,7 @@
 package execute
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -183,9 +184,13 @@ func TestExecuteTestcases(t *testing.T) {
 }
 
 func Test_discoverExecutableTestcases(t *testing.T) {
+	workingDir, err := os.Getwd()
+	assert.NoError(t, err)
 	projPath, err := filepath.Abs("../../testdata")
 	assert.NoError(t, err)
 	os.Chdir(projPath)
+	// 在更改了工作目录之后，必须要将工作目录重新更改回来，否则会影响同文件下后续用例执行
+	defer os.Chdir(workingDir)
 	// 验证可以基于指定目录路径找到路径下对应的所有包含测试用例的子目录
 	testcases := []*testcase.TestCase{
 		{
@@ -220,4 +225,22 @@ func Test_discoverExecutableTestcases(t *testing.T) {
 	execTestcases, err = discoverExecutableTestcases(testcases)
 	assert.NoError(t, err)
 	assert.Len(t, execTestcases, 1)
+}
+
+func Test_executeRawCmd(t *testing.T) {
+	// 获取工作目录
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
+	fmt.Println(wd)
+	projPath, err := filepath.Abs("../../testdata")
+	fmt.Println(projPath)
+	assert.NoError(t, err)
+	o := NewExecuteOptions()
+	// 创建临时目录存在用例结果
+	tmpDir, err := os.MkdirTemp("", "")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+	// 执行命令
+	err = o.executeRawCmd("go test ./demo", projPath, tmpDir)
+	assert.NoError(t, err)
 }
