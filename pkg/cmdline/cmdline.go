@@ -51,7 +51,7 @@ func (o *RawCmdline) AppendCoverage() {
 		return
 	}
 	coverageDir := filepath.Join(caverageDir, ".testsolar", "coverage")
-	if err := os.MkdirAll(coverageDir, 0666); err != nil {
+	if err := os.MkdirAll(coverageDir, 0755); err != nil {
 		log.Printf("[PLUGIN] Failed to create coverage dir: %s", err)
 		return
 	}
