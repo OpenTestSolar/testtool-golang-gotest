@@ -32,8 +32,8 @@ func (o *RawCmdlineRunner) appendExtraParams() {
 	log.Printf("[PLUGIN]Raw cmdline: %s", o.cmdline.GetCmdline())
 	o.cmdline.AppendJsonParam()
 	o.cmdline.AppendVParam()
-	o.cmdline.AppendRedirect()
 	o.cmdline.AppendCoverage()
+	o.cmdline.AppendRedirect()
 	log.Printf("[PLUGIN]Raw cmdline after append extra params: %s", o.cmdline.GetCmdline())
 }
 
