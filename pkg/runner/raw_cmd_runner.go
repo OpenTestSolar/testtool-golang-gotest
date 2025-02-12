@@ -3,8 +3,6 @@ package runner
 import (
 	"io"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/OpenTestSolar/testtool-golang-gotest/pkg/cmdline"
 	gotestResult "github.com/OpenTestSolar/testtool-golang-gotest/pkg/result"
@@ -12,10 +10,6 @@ import (
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
 	sdkClient "github.com/OpenTestSolar/testtool-sdk-golang/client"
 	"github.com/pkg/errors"
-)
-
-const (
-	coverageFileName = "testsolar_gotest.gocov"
 )
 
 type Runner interface {
@@ -39,10 +33,7 @@ func (o *RawCmdlineRunner) appendExtraParams() {
 	o.cmdline.AppendJsonParam()
 	o.cmdline.AppendVParam()
 	o.cmdline.AppendRedirect()
-	caverageDir, err := os.UserCacheDir()
-	if err == nil {
-		o.cmdline.AppendCoverage(filepath.Join(caverageDir, coverageFileName))
-	}
+	o.cmdline.AppendCoverage()
 	log.Printf("[PLUGIN]Raw cmdline after append extra params: %s", o.cmdline.GetCmdline())
 }
 

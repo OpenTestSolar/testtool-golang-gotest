@@ -2,7 +2,14 @@ package cmdline
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
+)
+
+const (
+	coverageFileName = "testsolar_gotest.gocov"
 )
 
 type RawCmdline struct {
@@ -37,6 +44,16 @@ func (o *RawCmdline) AppendRedirect() {
 	}
 }
 
-func (o *RawCmdline) AppendCoverage(coveragePath string) {
-	o.cmdline += fmt.Sprintf(" -coverprofile=%s ", coveragePath)
+func (o *RawCmdline) AppendCoverage() {
+	caverageDir, err := os.UserCacheDir()
+	if err != nil {
+		log.Printf("[PLUGIN] Failed to get user cache dir: %s", err)
+		return
+	}
+	coverageDir := filepath.Join(caverageDir, ".testsolar", "coverage")
+	if err := os.MkdirAll(coverageDir, 0666); err != nil {
+		log.Printf("[PLUGIN] Failed to create coverage dir: %s", err)
+		return
+	}
+	o.cmdline += fmt.Sprintf(" -coverprofile=%s ", filepath.Join(coverageDir, coverageFileName))
 }
