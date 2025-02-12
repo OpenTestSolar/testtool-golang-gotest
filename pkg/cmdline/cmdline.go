@@ -1,6 +1,9 @@
 package cmdline
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type RawCmdline struct {
 	cmdline string
@@ -32,4 +35,8 @@ func (o *RawCmdline) AppendRedirect() {
 	if !strings.Contains(o.cmdline, "2>&1") {
 		o.cmdline += " 2>&1 "
 	}
+}
+
+func (o *RawCmdline) AppendCoverage(coveragePath string) {
+	o.cmdline += fmt.Sprintf(" -coverprofile=%s ", coveragePath)
 }
