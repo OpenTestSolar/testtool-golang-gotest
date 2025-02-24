@@ -150,14 +150,25 @@ func discoverExecutableTestcases(testcases []*gotestTestcase.TestCase) ([]*gotes
 	return excutableTestcases, nil
 }
 
+func (o *ExecuteOptions) executeRawCmd(cmdline, projPath, reportPath string) error {
+	executor, err := gotestRunner.NewRawCmdlineExecutor(cmdline, projPath, reportPath)
+	if err != nil {
+		return pkgErrors.Wrapf(err, "failed to create executor")
+	}
+	return executor.Execute()
+}
+
 func (o *ExecuteOptions) RunExecute(cmd *cobra.Command) error {
 	// load case info from yaml file
 	config, err := gotestTestcase.UnmarshalCaseInfo(o.executePath)
 	if err != nil {
 		return pkgErrors.Wrapf(err, "failed to unmarshal case info")
 	}
+	if cmdline := config.RetrieveRawCmdline(); cmdline != "" {
+		return o.executeRawCmd(cmdline, config.GetProjectPath(), config.GetFileReportPath())
+	}
 	// parse testcases
-	testcases, err := parseTestcases(config.TestSelectors)
+	testcases, err := parseTestcases(config.GetTestSelectors())
 	if err != nil {
 		return pkgErrors.Wrapf(err, "failed to parse test selectors")
 	}
@@ -167,7 +178,7 @@ func (o *ExecuteOptions) RunExecute(cmd *cobra.Command) error {
 		return pkgErrors.Wrapf(err, "failed to discover excutble testcases")
 	}
 	// get workspace
-	projPath := gotestUtil.GetWorkspace(config.ProjectPath)
+	projPath := gotestUtil.GetWorkspace(config.GetProjectPath())
 	_, err = os.Stat(projPath)
 	if err != nil {
 		return pkgErrors.Wrapf(err, "stat project path %s failed", projPath)
@@ -178,7 +189,7 @@ func (o *ExecuteOptions) RunExecute(cmd *cobra.Command) error {
 		return pkgErrors.Wrap(err, "failed to group testcases by path and name")
 	}
 	// run testcases
-	reporter, err := sdkClient.NewReporterClient(config.FileReportPath)
+	reporter, err := sdkClient.NewReporterClient(config.GetFileReportPath())
 	if err != nil {
 		return pkgErrors.Wrap(err, "failed to create reporter")
 	}

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 
+	gotestModel "github.com/OpenTestSolar/testtool-golang-gotest/pkg/model"
 	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/pkg/errors"
 )
@@ -56,7 +57,7 @@ func ParseTestCaseBySelector(selector string) (*TestCase, error) {
 	return testCase, nil
 }
 
-func UnmarshalCaseInfo(path string) (*sdkModel.EntryParam, error) {
+func UnmarshalCaseInfo(path string) (*gotestModel.EntryParam, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read case info failed")
@@ -66,5 +67,5 @@ func UnmarshalCaseInfo(path string) (*sdkModel.EntryParam, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unmarshal case info into model failed")
 	}
-	return &config, nil
+	return gotestModel.NewEntryParam(config), nil
 }
