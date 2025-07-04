@@ -13,12 +13,34 @@ import (
 
 	gotestTestcase "github.com/OpenTestSolar/testtool-golang-gotest/pkg/testcase"
 	gotestUtil "github.com/OpenTestSolar/testtool-golang-gotest/pkg/util"
-
 	"github.com/OpenTestSolar/testtool-sdk-golang/api"
+	sdkModel "github.com/OpenTestSolar/testtool-sdk-golang/model"
 	"github.com/pkg/errors"
 )
 
+func reportFailedResultsAfterErr(err error, testcases []*gotestTestcase.TestCase, reporter api.Reporter) {
+	if err == nil {
+		return
+	}
+	for _, testcase := range testcases {
+		if reportErr := reporter.ReportCaseResult(&sdkModel.TestResult{
+			Test: &sdkModel.TestCase{
+				Name:       fmt.Sprintf("%s?%s", testcase.Path, testcase.Name),
+				Attributes: testcase.Attributes,
+			},
+			ResultType: sdkModel.ResultTypeFailed,
+			Message:    fmt.Sprintf("Run test failed: %s", err.Error()),
+		}); reportErr != nil {
+			log.Printf("[PLUGIN]Report err [%s] failed, report err: %s", err.Error(), reportErr.Error())
+		}
+	}
+}
+
 func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCase, reporter api.Reporter) error {
+	var err error
+	defer func() {
+		reportFailedResultsAfterErr(err, testcases, reporter)
+	}()
 	var cmdline string
 	var tcNames []string
 	nameFilter := make(map[string]bool)
@@ -37,12 +59,13 @@ func RunTest(projPath, path, fileName string, testcases []*gotestTestcase.TestCa
 		tcNames = append(tcNames, fmt.Sprintf("^%s$", name))
 	}
 	caseFullRelPath := filepath.Join(path, fileName)
-	if source, err := strconv.ParseBool(os.Getenv("TESTSOLAR_TTP_EXECUTEFROMSOURCE")); err == nil && source {
+	source, err := strconv.ParseBool(os.Getenv("TESTSOLAR_TTP_EXECUTEFROMSOURCE"))
+	if err == nil && source {
 		log.Printf("[PLUGIN]Execute test from source")
 		cmdline = fmt.Sprintf(`go test -v -json -run "%s" %s`, strings.Join(tcNames, "|"), filepath.Join(projPath, path))
 	} else {
 		pkgBin := filepath.Join(projPath, path+".test")
-		_, err := os.Stat(pkgBin)
+		_, err = os.Stat(pkgBin)
 		if err != nil {
 			log.Printf("[PLUGIN]Can't find package bin file %s during running, try to build it...", pkgBin)
 			_, err = gotestBuilder.BuildTestPackage(projPath, path, false)
